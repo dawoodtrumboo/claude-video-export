@@ -1,0 +1,15 @@
+{
+  "name": "claude-video-export",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Drag a Stage-based Claude design project in, get a 4K/60 silent MP4 out.",
+  "scripts": {
+    "start": "node server.mjs",
+    "export": "node cli.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.60.0",
+    "ffmpeg-static": "^5.2.0"
+  }
+}

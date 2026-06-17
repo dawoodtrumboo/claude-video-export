@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Video Export — 4K/60 MP4</title>
+<style>
+  :root{
+    --bg:#0b0f12; --panel:#11171c; --line:rgba(255,255,255,.08);
+    --ink:#eef2f3; --ink2:#9fb0b8; --faint:#5b6b73;
+    --accent:#ff6433; --accent2:#ff8254; --ok:#3ddc91;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'Manrope',system-ui,-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(255,100,51,.10), transparent 60%),
+      linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),
+      var(--bg);
+    background-size:auto, 48px 48px, 48px 48px, auto;
+    color:var(--ink); font-family:var(--sans);
+    display:flex; align-items:center; justify-content:center; padding:40px;
+  }
+  .wrap{width:min(640px,100%)}
+  .head{display:flex; align-items:baseline; gap:12px; margin-bottom:6px}
+  .head h1{font-size:24px; font-weight:800; letter-spacing:-.02em; margin:0}
+  .head .tag{font-family:var(--mono); font-size:11px; color:var(--accent); border:1px solid rgba(255,100,51,.4);
+    padding:3px 8px; border-radius:999px; letter-spacing:.06em; text-transform:uppercase}
+  .sub{color:var(--ink2); font-size:14px; margin:0 0 22px; line-height:1.5}
+  .sub b{color:var(--ink); font-weight:600}
+
+  .drop{
+    position:relative; border:1.5px dashed rgba(255,255,255,.16); border-radius:18px;
+    background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01));
+    padding:46px 28px; text-align:center; cursor:pointer; transition:border-color .18s, background .18s, transform .18s;
+  }
+  .drop:hover{border-color:rgba(255,100,51,.55)}
+  .drop.over{border-color:var(--accent); background:rgba(255,100,51,.06); transform:translateY(-2px)}
+  .drop .big{font-size:18px; font-weight:700; letter-spacing:-.01em}
+  .drop .small{color:var(--faint); font-size:13px; margin-top:8px; font-family:var(--mono)}
+  .drop svg{opacity:.85; margin-bottom:14px}
+
+  .opts{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap}
+  .opt{flex:1; min-width:150px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
+  .opt label{display:block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); margin-bottom:8px; font-family:var(--mono)}
+  .seg{display:flex; gap:4px}
+  .seg button{flex:1; background:transparent; color:var(--ink2); border:1px solid var(--line); border-radius:8px;
+    padding:8px 0; font-family:var(--mono); font-size:13px; cursor:pointer; transition:all .14s; font-weight:600}
+  .seg button:hover{color:var(--ink); border-color:rgba(255,255,255,.2)}
+  .seg button.on{background:var(--accent); border-color:var(--accent); color:#1a0d07}
+
+  .panel{margin-top:18px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; display:none}
+  .panel.show{display:block}
+  .row{display:flex; justify-content:space-between; align-items:center; gap:12px; font-family:var(--mono); font-size:12.5px}
+  .row .k{color:var(--ink2)} .row .v{color:var(--ink)}
+  .bar{height:10px; border-radius:999px; background:rgba(255,255,255,.07); overflow:hidden; margin:14px 0 10px}
+  .bar > i{display:block; height:100%; width:0%; border-radius:999px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width .25s}
+  .stat{display:flex; gap:18px; font-family:var(--mono); font-size:11.5px; color:var(--faint)}
+  .stat b{color:var(--ink2); font-weight:600}
+  .stage-label{font-weight:700; letter-spacing:-.01em; font-size:14px}
+
+  .done{display:none; margin-top:16px; align-items:center; gap:14px; flex-wrap:wrap}
+  .done.show{display:flex}
+  a.dl{background:var(--accent); color:#1a0d07; text-decoration:none; font-weight:800; padding:13px 22px; border-radius:11px;
+    font-size:14px; display:inline-flex; align-items:center; gap:9px; transition:transform .15s, background .15s}
+  a.dl:hover{transform:translateY(-1px); background:var(--accent2)}
+  .done .meta{font-family:var(--mono); font-size:12px; color:var(--ink2)}
+  .err{color:#ff7a6b; font-family:var(--mono); font-size:13px; margin-top:6px}
+  .foot{margin-top:22px; color:var(--faint); font-size:12px; line-height:1.6}
+  .foot code{font-family:var(--mono); color:var(--ink2); background:rgba(255,255,255,.05); padding:1px 6px; border-radius:5px}
+
+  /* --- bulk mode (additive) --- */
+  .modebar{display:flex; gap:10px; margin:-6px 0 18px}
+  .modebar .seg{flex:0 0 auto}
+  .modebar .seg button{padding:7px 16px}
+  .brow{display:grid; grid-template-columns:1fr 110px 92px auto; gap:12px; align-items:center; padding:9px 0; border-top:1px solid var(--line); font-size:12.5px}
+  .brow:first-child{border-top:none}
+  .brow .bname{font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .brow .bbar{height:6px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden}
+  .brow .bbar > i{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width .25s}
+  .brow .bst{font-family:var(--mono); font-size:11px; color:var(--ink2); text-align:right; white-space:nowrap}
+  .brow .bdl a{color:var(--accent); text-decoration:none; font-family:var(--mono); font-size:11px; font-weight:700}
+  .brow.ok .bst{color:var(--ok)}
+  .brow.err .bst{color:#ff7a6b}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>Claude Video Export</h1>
+    <span class="tag">4K · 60fps</span>
+  </div>
+  <p class="sub">Drop a <b>Stage-based</b> design project folder. It renders every frame in headless Chromium at 2× and encodes a silent <b>H.264 MP4</b> — no manual steps.</p>
+
+  <div class="modebar">
+    <div class="seg" id="seg-mode">
+      <button data-v="single" class="on">Single project</button>
+      <button data-v="bulk">Bulk import</button>
+    </div>
+  </div>
+
+  <div class="drop" id="drop">
+    <input id="picker" type="file" webkitdirectory directory multiple hidden>
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ff6433" stroke-width="1.5">
+      <path d="M12 16V4m0 0L7 9m5-5l5 5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round"/>
+    </svg>
+    <div class="big">Drop a project folder here</div>
+    <div class="small">or click to choose · folder must contain the .html + animations.jsx</div>
+  </div>
+
+  <div class="opts">
+    <div class="opt">
+      <label>Resolution</label>
+      <div class="seg" id="seg-res">
+        <button data-v="4k" class="on">4K</button>
+        <button data-v="1080p">1080p</button>
+      </div>
+    </div>
+    <div class="opt">
+      <label>Frame rate</label>
+      <div class="seg" id="seg-fps">
+        <button data-v="60" class="on">60</button>
+        <button data-v="30">30</button>
+      </div>
+    </div>
+    <div class="opt">
+      <label>Voiceover</label>
+      <div class="seg" id="seg-audio">
+        <button data-v="on" class="on">Include</button>
+        <button data-v="off">Silent</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel">
+    <div class="row"><span class="stage-label" id="stage">Preparing…</span><span class="v" id="meta"></span></div>
+    <div class="bar"><i id="fill"></i></div>
+    <div class="stat">
+      <span><b id="pct">0%</b></span>
+      <span id="frames"></span>
+      <span id="rate"></span>
+      <span id="eta"></span>
+    </div>
+    <div class="done" id="done">
+      <a class="dl" id="dl" href="#">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Download MP4
+      </a>
+      <span class="meta" id="outmeta"></span>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="panel" id="batch">
+    <div class="row"><span class="stage-label" id="bstage">Preparing…</span><span class="v" id="bover"></span></div>
+    <div class="bar"><i id="bfill"></i></div>
+    <div id="batchlist" style="margin-top:10px"></div>
+    <div class="done" id="bdone" style="margin-top:14px">
+      <a class="dl" id="bzip" href="#" style="display:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Download all (.zip)
+      </a>
+      <span class="meta" id="bsummary"></span>
+    </div>
+    <div class="err" id="berr"></div>
+  </div>
+
+  <div class="foot">
+    Not exporting? The project needs the <code>animations.jsx</code> <code>&lt;Stage&gt;</code> starter (it's auto-upgraded for export). Non-deterministic CSS <code>@keyframes</code> won't capture frame-perfectly.
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let RES = '4k', FPS = '60', AUDIO = 'on';
+for (const seg of ['seg-res','seg-fps','seg-audio']) {
+  $(seg).addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...$(seg).children].forEach(x => x.classList.remove('on')); b.classList.add('on');
+    if (seg === 'seg-res') RES = b.dataset.v; else if (seg === 'seg-fps') FPS = b.dataset.v; else AUDIO = b.dataset.v;
+  });
+}
+
+let MODE = 'single';
+$('seg-mode').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  [...$('seg-mode').children].forEach(x => x.classList.remove('on')); b.classList.add('on'); MODE = b.dataset.v;
+  $('drop').querySelector('.big').textContent = MODE === 'bulk' ? 'Drop a folder of projects here' : 'Drop a project folder here';
+  $('drop').querySelector('.small').textContent = MODE === 'bulk' ? 'or click to choose · each subfolder = one video' : 'or click to choose · folder must contain the .html + animations.jsx';
+  $('panel').classList.remove('show'); $('batch').classList.remove('show');
+});
+function start(files){ return MODE === 'bulk' ? runBatch(files) : run(files); }
+
+const drop = $('drop'), picker = $('picker');
+drop.addEventListener('click', () => picker.click());
+picker.addEventListener('change', () => {
+  const files = [...picker.files].map(f => ({ file: f, path: f.webkitRelativePath || f.name }));
+  if (files.length) start(files);
+});
+['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); if (ev==='dragleave') drop.classList.remove('over'); }));
+drop.addEventListener('drop', async (e) => {
+  e.preventDefault(); drop.classList.remove('over');
+  const items = [...e.dataTransfer.items].map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+  if (items.length) { const files = []; for (const it of items) await walk(it, '', files); if (files.length) start(files); }
+});
+function readAll(reader){ return new Promise((res)=>{ const out=[]; (function next(){ reader.readEntries((es)=>{ if(!es.length) return res(out); out.push(...es); next(); }); })(); }); }
+async function walk(entry, prefix, out){
+  if (entry.isFile){ const file = await new Promise((r,j)=>entry.file(r,j)); out.push({ file, path: prefix + entry.name }); }
+  else if (entry.isDirectory){ const es = await readAll(entry.createReader()); for (const e of es) await walk(e, prefix + entry.name + '/', out); }
+}
+
+function newJob(){ return 'j' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function show(stage){ $('panel').classList.add('show'); $('stage').textContent = stage; }
+
+async function run(files){
+  const job = newJob();
+  $('done').classList.remove('show'); $('err').textContent=''; $('fill').style.width='0%'; $('pct').textContent='0%';
+  $('frames').textContent=''; $('rate').textContent=''; $('eta').textContent=''; $('meta').textContent='';
+  show('Uploading project…');
+  // upload each file via raw PUT
+  let n = 0;
+  for (const { file, path } of files) {
+    await fetch('/u/' + job, { method:'PUT', headers:{ 'x-rel-path': encodeURIComponent(path) }, body: file });
+    n++; const p = Math.round(n/files.length*100);
+    $('fill').style.width = p + '%'; $('pct').textContent = p + '%'; $('frames').textContent = `${n}/${files.length} files`;
+  }
+  // start export
+  show('Preparing render…'); $('fill').style.width='0%'; $('pct').textContent='0%'; $('frames').textContent='';
+  await fetch('/start/' + job, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ res: RES, fps: FPS, audio: AUDIO === 'on' }) });
+  // stream progress
+  const es = new EventSource('/progress/' + job);
+  es.onmessage = (m) => {
+    const ev = JSON.parse(m.data);
+    if (ev.stage === 'meta') { $('meta').textContent = ev.meta ? `${ev.meta.width}×${ev.meta.height} · ${ev.meta.duration}s` : ''; show('Rendering frames…'); }
+    else if (ev.stage === 'launch') show('Starting browser…');
+    else if (ev.stage === 'capture') {
+      const p = Math.round(ev.done/ev.total*100);
+      $('fill').style.width = p + '%'; $('pct').textContent = p + '%';
+      $('frames').textContent = `${ev.done}/${ev.total} frames`;
+      $('rate').textContent = ev.fps ? `${ev.fps} fps` : '';
+      $('eta').textContent = ev.eta ? `~${Math.ceil(ev.eta/60*10)/10} min left` : '';
+      show('Rendering frames…');
+    }
+    else if (ev.stage === 'audio') { $('meta').textContent += '  ·  ♪ ' + ev.audio; }
+    else if (ev.stage === 'encode') { show(ev.message || 'Encoding MP4…'); $('fill').style.width='100%'; $('pct').textContent='100%'; $('eta').textContent=''; }
+    else if (ev.stage === 'done' && ev.download) {
+      es.close(); show('Done');
+      $('dl').href = ev.download; $('dl').setAttribute('download','export-4k60.mp4');
+      $('outmeta').textContent = `${ev.width}×${ev.height} · ${ev.fps}fps · ${(ev.size/1048576).toFixed(1)} MB${ev.audio ? ' · ♪ '+ev.audio : ''}`;
+      $('done').classList.add('show');
+    }
+    else if (ev.stage === 'error') { es.close(); show('Failed'); $('err').textContent = ev.message; }
+  };
+}
+
+// ---- bulk import (additive; single-project run() above is unchanged) ----
+async function runBatch(files){
+  const job = newJob();
+  $('panel').classList.remove('show'); $('batch').classList.add('show');
+  $('bdone').classList.remove('show'); $('bzip').style.display='none'; $('berr').textContent=''; $('bsummary').textContent='';
+  $('batchlist').innerHTML=''; $('bfill').style.width='0%'; $('bover').textContent='';
+  $('bstage').textContent='Uploading…';
+  let n=0;
+  for (const { file, path } of files){
+    await fetch('/u/'+job, { method:'PUT', headers:{ 'x-rel-path': encodeURIComponent(path) }, body:file });
+    n++; $('bfill').style.width=Math.round(n/files.length*100)+'%'; $('bover').textContent=`${n}/${files.length} files`;
+  }
+  $('bstage').textContent='Finding projects…'; $('bfill').style.width='0%'; $('bover').textContent='';
+  await fetch('/start-batch/'+job, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ res:RES, fps:FPS, audio:AUDIO==='on' }) });
+  let count=0, doneCount=0, curFrac=0;
+  const overall=()=>{ const ov=count?Math.round((doneCount+curFrac)/count*100):0; $('bfill').style.width=ov+'%'; $('bover').textContent=`${doneCount}/${count} done`; };
+  const row=(i)=>$('bp'+i);
+  const esc=(s)=>String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const es=new EventSource('/progress/'+job);
+  es.onmessage=(m)=>{
+    const ev=JSON.parse(m.data);
+    if (ev.stage==='batch-start'){ count=ev.count; doneCount=0;
+      $('bstage').textContent=`Rendering ${count} video${count>1?'s':''}…`;
+      $('batchlist').innerHTML=ev.names.map((nm,i)=>`<div class="brow" id="bp${i}"><span class="bname" title="${esc(nm)}">${esc(nm)}</span><span class="bbar"><i></i></span><span class="bst">queued</span><span class="bdl"></span></div>`).join('');
+      overall();
+    }
+    else if (ev.stage==='project-start'){ curFrac=0; const r=row(ev.index); if(r) r.querySelector('.bst').textContent='starting…'; }
+    else if (ev.stage==='capture'){ curFrac=ev.done/ev.total; const r=row(ev.index); if(r){ r.querySelector('.bbar>i').style.width=Math.round(curFrac*100)+'%'; r.querySelector('.bst').textContent=Math.round(curFrac*100)+'%'; } overall(); }
+    else if (ev.stage==='encode'){ const r=row(ev.index); if(r){ r.querySelector('.bbar>i').style.width='100%'; r.querySelector('.bst').textContent='encoding…'; } }
+    else if (ev.stage==='project-done'){ doneCount++; curFrac=0; const r=row(ev.index); if(r){ r.classList.add('ok'); r.querySelector('.bbar>i').style.width='100%'; r.querySelector('.bst').textContent=(ev.size/1048576).toFixed(1)+' MB'; if(ev.download) r.querySelector('.bdl').innerHTML=`<a href="${ev.download}" download="${esc(ev.file)}">download</a>`; } overall(); }
+    else if (ev.stage==='project-error'){ doneCount++; curFrac=0; const r=row(ev.index); if(r){ r.classList.add('err'); r.querySelector('.bst').textContent='failed'; r.title=ev.message||''; } overall(); }
+    else if (ev.stage==='batch-done'){ es.close(); $('bstage').textContent='Done'; $('bfill').style.width='100%';
+      const ok=ev.results.filter(r=>r.ok).length;
+      $('bsummary').textContent=`${ok}/${ev.results.length} succeeded`;
+      $('bdone').classList.add('show');
+      if (ev.zip){ $('bzip').href=ev.zip; $('bzip').setAttribute('download','videos.zip'); $('bzip').style.display='inline-flex'; }
+      ev.results.forEach(x=>{ const r=row(x.index); if(!r) return; if(x.ok && x.download){ r.classList.add('ok'); const dl=r.querySelector('.bdl'); if(dl && !dl.innerHTML) dl.innerHTML=`<a href="${x.download}" download="${esc(x.file)}">download</a>`; } else if(!x.ok){ r.classList.add('err'); r.querySelector('.bst').textContent='failed'; r.title=x.error||''; } });
+    }
+    else if (ev.stage==='error'){ es.close(); $('bstage').textContent='Failed'; $('berr').textContent=ev.message; }
+  };
+}
+</script>
+</body>
+</html>

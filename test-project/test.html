@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Test</title>
+<style>html,body{margin:0;background:#0b0f12;overflow:hidden}#root{position:fixed;inset:0}</style></head>
+<body><div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel">
+  function Scene(){
+    const t = useTime();
+    const x = interpolate([0,1,2],[120,1040,120],Easing.easeInOutCubic)(t);
+    return (
+      <div style={{position:'absolute',inset:0,fontFamily:'system-ui,sans-serif'}}>
+        <div style={{position:'absolute',left:x,top:300,width:120,height:120,borderRadius:28,background:'#ff6433'}}/>
+        <div style={{position:'absolute',left:60,top:60,color:'#eef2f3',fontSize:42,fontWeight:800}}>frame test · t={t.toFixed(2)}s</div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <Stage width={1280} height={720} duration={2} fps={60} background="#0b0f12"><Scene/></Stage>
+  );
+</script></body></html>
