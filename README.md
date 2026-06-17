@@ -1,8 +1,24 @@
 # Claude Video Export
 
+> Export Claude Design and Claude Artifact animations to **4K / 60fps H.264 MP4** — frame-accurate, headless, zero per-project scripting.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Playwright](https://img.shields.io/badge/Playwright-Chromium-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![ffmpeg](https://img.shields.io/badge/ffmpeg-bundled-007808?logo=ffmpeg&logoColor=white)](https://ffmpeg.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
 Drag a **Stage-based** Claude design project folder in, get a silent **4K / 60fps H.264 MP4** out. No manual ffmpeg, no per-project scripting.
 
 It renders every frame deterministically in headless Chromium at 2× (true supersampled 4K) and encodes with a bundled ffmpeg.
+
+---
+
+## Who this is for
+
+- You're building **animated videos in Claude Design / Claude Artifacts** (or any React `<Stage>`-based timeline) and want to ship them as real video files instead of screen recordings.
+- You need **4K / 60fps**, deterministic, frame-perfect output — no dropped frames, no jitter, no manual `ffmpeg` incantations.
+- You want to **batch-export many animation projects** at once (e.g. a 30-day reel series) without writing per-project export scripts.
 
 ---
 

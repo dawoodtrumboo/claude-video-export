@@ -3,7 +3,40 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Drag a Stage-based Claude design project in, get a 4K/60 silent MP4 out.",
+  "description": "Export Claude Design and Claude Artifact animations to 4K/60 MP4. Frame-accurate headless Chromium renderer for Stage-based React animations, with bundled ffmpeg.",
+  "keywords": [
+    "claude",
+    "claude-ai",
+    "anthropic",
+    "claude-design",
+    "claude-artifacts",
+    "video-export",
+    "html-to-video",
+    "react-animation",
+    "stage",
+    "4k-video",
+    "mp4",
+    "ffmpeg",
+    "playwright",
+    "headless-chromium",
+    "frame-accurate",
+    "motion-graphics",
+    "video-encoder",
+    "cli"
+  ],
+  "author": "Sohail Bukhari",
+  "license": "MIT",
+  "homepage": "https://github.com/dawoodtrumboo/claude-video-export#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dawoodtrumboo/claude-video-export.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dawoodtrumboo/claude-video-export/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node server.mjs",
     "export": "node cli.mjs"
