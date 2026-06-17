@@ -20,7 +20,7 @@ You do **not** need a system ffmpeg — a static binary ships with `ffmpeg-stati
 ## Local setup
 
 ```bash
-git clone https://github.com/<your-username>/claude-video-export.git
+git clone https://github.com/dawoodtrumboo/claude-video-export.git
 cd claude-video-export
 npm install
 npx playwright install chromium
