@@ -97,9 +97,26 @@ Outputs one `<project-folder>.mp4` per project into `<out>` (default `<parent>/_
 Drop a finished audio track into the project folder and the export comes out **with sound** — muxed during the encode pass (no extra video re-encode).
 
 - **Detection:** a file named `voiceover.*` / `narration.*` / `*mix*` (or the single audio file present) — `.mp3 .wav .m4a .aac .ogg .flac`. Output `.mp4`s and frame dirs are ignored.
-- **Sync is in the file:** the converter doesn't time anything — it overlays the track at t=0. Produce the VO already synced to the animation's timeline (script → ElevenLabs → mix), then drop it in.
+- **Sync is in the file:** the converter doesn't time anything — it overlays the track at t=0. Produce the VO already synced to the animation's timeline, then drop it in.
 - **Auto tail-hold:** if the audio runs longer than the animation (e.g. an end-card beat), the last frame is held so the audio finishes — no clipped CTA.
 - Toggle **Voiceover: Include / Silent** in the UI (or `audio:false` / CLI default on).
+
+#### Works with any TTS or recorded voiceover
+
+The exporter is **audio-source-agnostic** — it doesn't call any TTS API. Generate the voiceover wherever you like, save it as one of the supported formats, drop it in the project folder, and the encoder will mux it.
+
+Common upstream tools that work out of the box:
+
+- **AI voice / TTS:** [ElevenLabs](https://elevenlabs.io), [PlayHT](https://play.ht), [Murf](https://murf.ai), [OpenAI TTS](https://platform.openai.com/docs/guides/text-to-speech), [Azure Speech](https://azure.microsoft.com/en-us/products/ai-services/ai-speech), [Google Cloud TTS](https://cloud.google.com/text-to-speech), [Amazon Polly](https://aws.amazon.com/polly/), [Resemble.ai](https://www.resemble.ai), [WellSaid Labs](https://wellsaidlabs.com).
+- **Hand-recorded:** any DAW that exports `.mp3` / `.wav` / `.m4a` / `.aac` / `.ogg` / `.flac` — Logic Pro, Adobe Audition, GarageBand, Reaper, Audacity, Descript.
+
+**Recommended pipeline for AI voiceovers:**
+
+1. Write the script timed to your animation's `<Stage>` `duration`.
+2. Generate the audio in your TTS provider of choice (ElevenLabs / OpenAI / Murf / etc.).
+3. (Optional) Open the rendered animation alongside the audio in a DAW, nudge for sync, export a single mix.
+4. Save the file as `voiceover.mp3` (or similar) in the project folder.
+5. Run the exporter — it auto-detects and muxes.
 
 ### Authoring tips
 
