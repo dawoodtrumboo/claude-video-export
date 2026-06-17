@@ -22,7 +22,10 @@
     "frame-accurate",
     "motion-graphics",
     "video-encoder",
-    "cli"
+    "cli",
+    "voiceover",
+    "text-to-speech",
+    "elevenlabs"
   ],
   "author": "Sohail Bukhari",
   "license": "MIT",
